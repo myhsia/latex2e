@@ -15,8 +15,8 @@
 %
 %    https://github.com/latex3/latex2e/issues
 %
-\def\ltlabfirstaiddate{2026-04-24}
-\def\ltlabfirstaidversion{0.85u}
+\def\ltlabfirstaiddate{2026-05-11}
+\def\ltlabfirstaidversion{0.85v}
 
 %<*driver>
 \DocumentMetadata{tagging=on,pdfstandard=ua-2}
@@ -47,6 +47,8 @@
 %
 % \begin{abstract}
 % \end{abstract}
+%
+% \tableofcontents
 %
 % \section{Introduction}
 %
@@ -258,10 +260,13 @@
 \ExplSyntaxOff
 %    \end{macrocode}
 %
-% \subsection{verse}
+%
+% \subsection{The \pkg{verse} package first aid}
 %
 %    The \pkg{verse} package has its own definition of the
-%    \env{verse} environment, which would tag correctly, except that
+%    \env{verse} environment, which would tag correctly\footnote{Well, sort
+%    of, it pretends to be a list so eventually it should
+%    reimplemented as a proper block environment.}, except that
 %    it is overwritten by the block code in the hook
 %    \texttt{begindocument/before}. So the simplest way to make
 %    tagging work is to reinstall the package version afterwards,
@@ -423,6 +428,7 @@
 %
 %
 % \subsection{fancyvrb}
+%
 % The firstaid adds first partial tagging support to the environments
 % of fancyvrb (inline verbatim is untested).
 % This supports then also packages like minted which internally uses fancyvrb
@@ -605,6 +611,60 @@
 \ExplSyntaxOff
 %    \end{macrocode}
 %
+%
+%
+% \subsection{The \pkg{tocbibind} package first aid}
+%
+%    The package defines two commands for altering the chapter layout
+%    and make it more concise. With the new template implementation
+%    for headings this has stopped working because it tries to
+%    overwrite \cs{@makechapterhead} which no longer exists.
+%
+%    So here reimplement the commands to change the \texttt{chapter}
+%    instance instead.
+%    \begin{macrocode}
+\AddToHook{package/tocbibind/after}[latex-lab-firstaid]{%
+  \FirstAidNeededT{tocbibind}{sty}{2010/10/13 v1.5k extra ToC
+                                   listings}%
+     {%
+       \renewcommand\simplechapter[1][]{%
+%    \end{macrocode}
+%    If we haven't changed the normal \texttt{chapter} instance do it now:
+%    \begin{macrocode}
+         \IfInstanceExistsF{heading}{chapter-orig}{%
+           \DeclareInstanceCopy{heading}{chapter-orig}{chapter}%
+         }%
+%    \end{macrocode}
+%    Then alter some of the instance keys, one important part is to
+%    use our own instance for \texttt{headformat-instance}.
+%    \begin{macrocode}
+         \EditInstance{heading}{chapter}{%
+            headformat-instance=chapter
+           ,number-decls=\Huge
+           ,number-format=#1\space\thechapter\simplechapterdelim\space
+         }%
+%    \end{macrocode}
+%    Given that we have a \cs{space} at the end of
+%    \texttt{number-format} we suppress any further space by setting
+%    \texttt{number-title-sep} to zero in that instance.
+%    \begin{macrocode}
+         \DeclareInstance{headformat}{chapter}{hang}{%
+            number-title-sep=0pt%
+         }%
+       }%
+%    \end{macrocode}
+%    Restoring then works by copying the saved instance back (if it exists).
+%    \begin{macrocode}
+       \renewcommand\restorechapter{%
+         \IfInstanceExistsT{heading}{chapter-orig}{%
+           \DeclareInstanceCopy{heading}{chapter}{chapter-orig}%
+         }%
+       }%
+     }%
+}
+
+%    \end{macrocode}
+%    
 %    \begin{macrocode}
 %</package>
 %    \end{macrocode}
