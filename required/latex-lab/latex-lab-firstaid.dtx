@@ -633,6 +633,7 @@
 %    \begin{macrocode}
          \IfInstanceExistsF{heading}{chapter-orig}{%
            \DeclareInstanceCopy{heading}{chapter-orig}{chapter}%
+           \DeclareInstanceCopy{headformat}{chapter-orig}{chapter}%
          }%
 %    \end{macrocode}
 %    Then alter some of the instance keys, one important part is to
@@ -658,6 +659,7 @@
        \renewcommand\restorechapter{%
          \IfInstanceExistsT{heading}{chapter-orig}{%
            \DeclareInstanceCopy{heading}{chapter}{chapter-orig}%
+           \DeclareInstanceCopy{headformat}{chapter}{chapter-orig}%
          }%
        }%
      }%
